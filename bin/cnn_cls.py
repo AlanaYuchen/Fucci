@@ -14,7 +14,7 @@ import skimage.io as io
 import numpy as np
  
 # project directory
-os.chdir('/Users/jefft/Desktop/BMI_Project/Fucci')
+os.chdir(os.path.abspath("../")) # project path, absolute
 
 # relative directory to the project
 train_dir = 'data/training/train'

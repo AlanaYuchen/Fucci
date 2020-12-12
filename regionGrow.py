@@ -58,7 +58,8 @@ def regionGrow(img,seeds,thresh,p = 1):
  
  
 img = io.imread('data/test_seg.png')
-seed_crd = np.where(img>np.percentile(img, 98))
+seed_crd = np.where(img>np.percentile(img, 96))
+list(map(lambda x:Point()))
 seeds = [Point(540,570),Point(842,242),Point(634,562)]
 binaryImg = regionGrow(img,seeds,10)
 io.imshow(binaryImg)

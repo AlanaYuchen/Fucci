@@ -3,7 +3,7 @@
 """
 Created on Fri Dec 11 22:53:26 2020
 
-@author: jefft
+@author: Full Moon
 """
 
 import numpy as np
@@ -15,8 +15,7 @@ import pandas as pd
 import math
 import skimage.transform as transform
 
-os.getcwd() # check workinh directory
-#os.chdir('/Users/jefft/Desktop/BMI_Project/Fucci')
+os.chdir(os.path.abspath("../")) # project path, absolute
 # Constants
 GFP_path = 'data/gfp_rscl.tif'
 mCherry_path = 'data/mcy_rscl.tif'

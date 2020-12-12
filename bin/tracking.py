@@ -3,7 +3,7 @@
 """
 Created on Sat Dec 12 12:56:37 2020
 
-@author: jefft
+@author: Full Moon
 """
 
 # Centroid tracking, by evaluating cross-frame Euclidean distance between bounding boxes

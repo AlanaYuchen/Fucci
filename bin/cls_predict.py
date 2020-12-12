@@ -3,16 +3,14 @@
 """
 Created on Sat Dec 12 11:49:04 2020
 
-@author: jefft
+@author: Full Moon
 """
-class_dic = {'G1':0, 'S':1, 'G2':2, 'M':3}
 
-import os
-os.chdir('/Users/jefft/Desktop/BMI_Project/Fucci') # project path, absolute
+#import os
+#os.chdir(os.path.abspath("../")) # project path, absolute
 
-model_path = 'data/model.h5' # relative directory of model
+# model_path = 'data/model.h5' # relative directory of model
 import tensorflow as tf
-model = tf.keras.models.load_model(model_path)
 import numpy as np
 
 def load_image(d, resolve_class=False):
@@ -55,7 +53,9 @@ def stage2class(l):
     stage2class_dic = {0:'G1', 1:'S', 2:'G2', 3:'M'}
     return list(map(lambda x: stage2class_dic[x], l))
     
-    
-s = load_image('data/training/valid', resolve_class=True)
-prediction = model.predict(s[0])
-prediction = stage2class(list(map(lambda x:np.where(prediction[x,:] == np.max(prediction[x,:]))[0][0], range(prediction.shape[0]))))
+def doPredict(obj_table, imgs, cnn_path):
+    s = load_image('data/training/valid', resolve_class=True)
+    model = tf.keras.models.load_model(cnn_path)
+    prediction = model.predict(s[0])
+    prediction = stage2class(list(map(lambda x:np.where(prediction[x,:] == np.max(prediction[x,:]))[0][0], range(prediction.shape[0]))))
+    return(obj_table)
