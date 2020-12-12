@@ -93,11 +93,11 @@ def main(argv):
     
     # Step 1. Segmentation
     if verbose: print(">>> Segmentation\n")
-    mask, gfp_pcd, mcy_pcd = doSeg(gfp_path, mCherry_path)
+    mask, gfp_pcd, mcy_pcd = segmentation.doSeg(gfp_path, mCherry_path)
     
     # Step 2. Identify objects, retrieve resized images of each object
     if verbose: print(">>> Object Identification")
-    obj_table, stacks = doMeasure(mask, gfp_pcd, mcy_pcd)
+    obj_table, stacks = measureByMask.doMeasure(mask, gfp_pcd, mcy_pcd, dic_path)
     if verbose: print("Identified " + str(len(stacks)) + " objects. \n")
     
     # Step 3. Object classification
