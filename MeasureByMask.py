@@ -16,7 +16,7 @@ import math
 import skimage.transform as transform
 
 os.getcwd() # check workinh directory
-#  os.chdir('/Users/jefft/Desktop/BMI_Project/Fucci')
+#os.chdir('/Users/jefft/Desktop/BMI_Project/Fucci')
 # Constants
 GFP_path = 'data/gfp_rscl.tif'
 mCherry_path = 'data/mcy_rscl.tif'
@@ -88,11 +88,16 @@ dt_label = dt_label.sort_values(by="id")
 
 # ***optional***
 # Output training set
+valid_num = 150 # number of validation set
+valid = np.random.choice(range(dt_label.shape[0]), valid_num)
 for i in range(dt_label.shape[0]):
     id = dt_label.iloc[i,0] # id
     label = dt_label.iloc[i,9] # user label
     image = dt_label.iloc[i,8] # image
-    io.imsave('data/training/train/train_'+str(id)+"_"+label+".tif", image)
+    if i in valid:
+        io.imsave('data/training/valid/valid_'+str(id)+"_"+label+".tif", image)
+    else:
+        io.imsave('data/training/train/train_'+str(id)+"_"+label+".tif", image)
 
 '''
 =========================== BELOW NOT TESTED =================================
