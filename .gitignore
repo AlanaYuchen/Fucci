@@ -73,3 +73,6 @@ Temporary Items
 
 # Raw imaging data
 data
+
+# python
+__pycache__
