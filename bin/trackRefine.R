@@ -156,7 +156,7 @@ for (i in 1:(length(potential_daughter_pair_id)-1)){
             ann[which(ann$track==parent_id), "mitosis_identity"] = "parent"
             ann[which(ann$track==parent_id), "mitosis_daughter"] = paste(target_info_1$track, target_info_2$track, sep="/")
                 # update information in track table
-              for (t in which(track$trackId==target_info_1$trackId | track$trackId==target_info_2$trackId)){
+              for (t in which(track$trackId==target_info_1$track | track$trackId==target_info_2$track)){
                 track$lineageId[t] = parent_id
                 track$parentTrackId[t] = parent_id
               }
