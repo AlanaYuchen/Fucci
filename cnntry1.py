@@ -24,7 +24,7 @@ pool_size = (2, 2)
 kernel_size = (3, 3)
  
 #load data
-(X_train, y_train), (X_test, y_test) = mnist.load_data()
+(X_train, y_train), (X_test, y_test) = mnist.load_data() # (10000, 28, 28)
 from sklearn.model_selection import train_test_split
 #x为数据集的feature熟悉，y为label.
 X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size = 0.2)
