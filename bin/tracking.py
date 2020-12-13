@@ -3,17 +3,20 @@
 """
 Created on Sat Dec 12 12:56:37 2020
 
+Slightly adapted from https://www.pyimagesearch.com/2018/07/23/simple-object-tracking-with-opencv/, Adrian Rosebrock
+See "Modification" in code annotation.
+
 @author: Full Moon
 """
 
 # Centroid tracking, by evaluating cross-frame Euclidean distance between bounding boxes
 
-# Ref: https://www.pyimagesearch.com/2018/07/23/simple-object-tracking-with-opencv/
 from scipy.spatial import distance as dist
 from collections import OrderedDict
 import numpy as np
 class CentroidTracker():
-    def __init__(self, maxDisappeared=1):
+    def __init__(self, maxDisappeared=1, dist_trh=90):
+        self.THRESHOLD = dist_trh # previous-current matching threshold, no association will be drawn if distance over threshold
         self.nextID = 0 # counter of the current object number, for next object assignment. 
         self.objects = OrderedDict() # key: object ID; value: centroid
         self.disappeared = OrderedDict() # key: object ID; value: times of "disappear" mark.
@@ -62,6 +65,9 @@ class CentroidTracker():
             for (row, col) in zip(rows, cols):
                 if row in visitedRows or col in visitedCols:
                     continue
+                # Modification 1: if distance over threshold, even if the smallest, will not associate.
+                if D[row, col] > self.THRESHOLD:
+                    continue
                 objectID = objectIDs[row]
                 self.objects[objectID] = centroids[col] # update centroid
                 self.disappeared[objectID] = 0 # reset disappearance count
@@ -73,19 +79,18 @@ class CentroidTracker():
             unvisitedRows = set(range(0, D.shape[0])).difference(visitedRows)
             unvisitedCols = set(range(0, D.shape[1])).difference(visitedCols)
 
-            if D.shape[0] >= D.shape[1]:
-                # if previous object count (D.shape[0]) is more than current, check disappearance
+            # Modification 2: do not compare size of row and col. 
+            # All unvisited rows / cols are viewed as appearing/disappearing tracks.
 				# iterate over the unused row indexes
-                for row in unvisitedRows:
-                    # unmatched previous objects in unvisitedRows
-                    objectID = objectIDs[row]
-                    self.disappeared[objectID] += 1
+            for row in unvisitedRows:
+                # unmatched previous objects in unvisitedRows
+                objectID = objectIDs[row]
+                self.disappeared[objectID] += 1
 					# check if mark is above threshold
-                    if self.disappeared[objectID] > self.maxDisappeared:
-                        self.deregister(objectID)
-            else:
-                # if previous object count is smaller than current, check appearance.
-                for col in unvisitedCols:
-                    self.register(centroids[col])
+                if self.disappeared[objectID] > self.maxDisappeared:
+                    self.deregister(objectID)
+            
+            for col in unvisitedCols:
+                self.register(centroids[col])
 
         return self.objects

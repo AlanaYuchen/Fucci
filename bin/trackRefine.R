@@ -17,9 +17,9 @@
 # - 3. Temporal loss of signal or segmentation issue
 # - 4. Mitosis
 
-DIST_TOLERANCE = 90 # 75 Distance to search for parent-daughter relatoinship
-div_trans_factor = 1.5 # 2 recommanded
-FRAME_TOLERANCE = 5 # 5 Time distance to search for parent-daughter relationship
+DIST_TOLERANCE = 90 # Distance to search for parent-daughter relatoinship
+div_trans_factor = 1.5 # recommanded
+FRAME_TOLERANCE = 5 # Time distance to search for parent-daughter relationship
 
 # Filter out false detection
 track = read.csv(paste(getwd(),"bin/.temp.csv",sep = "/"))
