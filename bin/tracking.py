@@ -14,15 +14,15 @@ from collections import OrderedDict
 import numpy as np
 class CentroidTracker():
     def __init__(self, maxDisappeared=1):
-        self.nextObjectID = 0 # counter of the current object number, for next object assignment. 
+        self.nextID = 0 # counter of the current object number, for next object assignment. 
         self.objects = OrderedDict() # key: object ID; value: centroid
         self.disappeared = OrderedDict() # key: object ID; value: times of "disappear" mark.
       		# if cannot match for frame number larger than maxDisappeared, deregister from the list.
         self.maxDisappeared = maxDisappeared
     def register(self, centroid):
-        self.objects[self.nextObjectID] = centroid
-        self.disappeared[self.nextObjectID] = 0
-        self.nextObjectID += 1
+        self.objects[self.nextID] = centroid
+        self.disappeared[self.nextID] = 0
+        self.nextID += 1
     def deregister(self, objectID):
         del self.objects[objectID]
         del self.disappeared[objectID]
@@ -56,28 +56,28 @@ class CentroidTracker():
             rows = D.min(axis=1).argsort() # sort index, ascending, col: current object in centroid list
             cols = D.argmin(axis=1)[rows] # row: matched previous object
             
-            usedRows = set()
-            usedCols = set()
+            visitedRows = set()
+            visitedCols = set()
 			# To compare with previous state, loop over the combination of the (row, column) index
             for (row, col) in zip(rows, cols):
-                if row in usedRows or col in usedCols:
+                if row in visitedRows or col in visitedCols:
                     continue
                 objectID = objectIDs[row]
                 self.objects[objectID] = centroids[col] # update centroid
                 self.disappeared[objectID] = 0 # reset disappearance count
 				# keep trace of examined ones
-                usedRows.add(row)
-                usedCols.add(col)
+                visitedRows.add(row)
+                visitedCols.add(col)
             
             # NOT yet examined rows and columns.
-            unusedRows = set(range(0, D.shape[0])).difference(usedRows)
-            unusedCols = set(range(0, D.shape[1])).difference(usedCols)
+            unvisitedRows = set(range(0, D.shape[0])).difference(visitedRows)
+            unvisitedCols = set(range(0, D.shape[1])).difference(visitedCols)
 
             if D.shape[0] >= D.shape[1]:
                 # if previous object count (D.shape[0]) is more than current, check disappearance
 				# iterate over the unused row indexes
-                for row in unusedRows:
-                    # unmatched previous objects in unusedRows
+                for row in unvisitedRows:
+                    # unmatched previous objects in unvisitedRows
                     objectID = objectIDs[row]
                     self.disappeared[objectID] += 1
 					# check if mark is above threshold
@@ -85,7 +85,7 @@ class CentroidTracker():
                         self.deregister(objectID)
             else:
                 # if previous object count is smaller than current, check appearance.
-                for col in unusedCols:
+                for col in unvisitedCols:
                     self.register(centroids[col])
 
         return self.objects

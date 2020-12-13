@@ -17,7 +17,7 @@ import doTrack
 import summary
 
 def main(argv):
-    
+   
     # I/O variables: output & input directory; GFP/mCherry/DIC file path and mode
     # The program supports two modes, 
     #   1) Single input: user specify single GFP/mCherry/DIC image datasets.
