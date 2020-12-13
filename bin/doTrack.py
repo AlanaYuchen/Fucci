@@ -19,7 +19,7 @@ def trackRefineR(meta):
     return rt
 
 def centroidTracking(meta):
-    ct = CentroidTracker(maxDisappeared=10)
+    ct = CentroidTracker(maxDisappeared=1)
     trackId = []
     for i in range(max(meta['frame'])+1):
         # for each frame, extract centroids

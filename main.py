@@ -23,6 +23,7 @@ def main(argv):
     mCherry_path = ''
     dic_path = ''
     mode = ''
+    prefix = ''
     verbose = False
     gfp_list = []
     mcy_list = []
@@ -82,7 +83,7 @@ def main(argv):
         print("Error! Resolved datasets not of same length.")
         sys.exit()
     go = input("Image files in correct order? [y/n] ")
-    if not go:
+    if go!='y':
         sys.exit()
     
     for i in len(gfp_list):
@@ -90,26 +91,29 @@ def main(argv):
             gfp_path = ip + gfp_list[i]
             mCherry_path = ip + mcy_list[i]
             dic_path = ip + dic_list[i]
-    
-    # Step 1. Segmentation
-    if verbose: print(">>> Segmentation\n")
-    mask, gfp_pcd, mcy_pcd = segmentation.doSeg(gfp_path, mCherry_path)
-    
-    # Step 2. Identify objects, retrieve resized images of each object
-    if verbose: print(">>> Object Identification")
-    obj_table, stacks = measureByMask.doMeasure(mask, gfp_pcd, mcy_pcd, dic_path)
-    if verbose: print("Identified " + str(len(stacks)) + " objects. \n")
-    
-    # Step 3. Object classification
-    if verbose: print(">>> Classification\n")
-    obj_table = cls_predict.doPredict(obj_table, stacks, cnn_path)
-    
-    # Step 4. Tracking
-    if verbose: print(">>> Tracking\n")
-    tracks = doTrack.centroidTracking(obj_table)
-    
-    # Step 5. Output result
-    summary(tracks, out)
+        
+        prefix = re.search('(.*)GFP.*', gfp_list[i]).group(1)
+        
+        # Step 1. Segmentation
+        if verbose: print(">>> Segmentation\n")
+        mask, gfp_pcd, mcy_pcd = segmentation.doSeg(gfp_path, mCherry_path)
+        
+        # Step 2. Identify objects, retrieve resized images of each object
+        if verbose: print(">>> Object Identification")
+        obj_table, stacks = measureByMask.doMeasure(mask, gfp_pcd, mcy_pcd, dic_path)
+        if verbose: print("Identified " + str(len(stacks)) + " objects. \n")
+        
+        # Step 3. Object classification
+        if verbose: print(">>> Classification\n")
+        obj_table = cls_predict.doPredict(obj_table, stacks, cnn_path)
+        
+        # Step 4. Tracking
+        if verbose: print(">>> Tracking\n")
+        tracks = doTrack.centroidTracking(obj_table)
+        
+        # Step 5. Output result
+        summary.plot_track(tracks, out, prefix)
+        summary.save_track(tracks, out, prefix)
     
 if __name__ == "__main__":
     main(sys.argv[1:])

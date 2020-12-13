@@ -13,7 +13,7 @@ from scipy.spatial import distance as dist
 from collections import OrderedDict
 import numpy as np
 class CentroidTracker():
-    def __init__(self, maxDisappeared=5):
+    def __init__(self, maxDisappeared=1):
         self.nextObjectID = 0 # counter of the current object number, for next object assignment. 
         self.objects = OrderedDict() # key: object ID; value: centroid
         self.disappeared = OrderedDict() # key: object ID; value: times of "disappear" mark.
