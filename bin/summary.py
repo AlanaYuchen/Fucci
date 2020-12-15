@@ -20,7 +20,6 @@ def plot_track(track, out, prefix):
     plt.xlabel('mCherry', fontsize=14)
     plt.ylabel('GFP', fontsize=14)
     plt.savefig(out + prefix + 'plot.png')
-    #plt.savefig('/Users/jefft/Desktop/plot.png')
     plt.show()
     return
 

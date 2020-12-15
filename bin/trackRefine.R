@@ -85,7 +85,7 @@ ann = data.frame(
 broken_tracks = vector()
 for (i in 0:(track_count-1)){
   cur_track = subset(track, track$trackId==i)
-  if (max(cur_track$frame)-min(cur_track$frame-1)==nrow(cur_track) & nrow(cur_track) >= 2*FRAME_TOLERANCE){
+  if (max(cur_track$frame)-min(cur_track$frame-1)==nrow(cur_track)){
     # constraint A: ilastik does not allow gap-filling, so frame_diff should equals record number
     # constraint B: track < 2 frame length tolerance is filtered out, No relationship can be deduced from that.
     ann$track[i+1] = i
@@ -97,9 +97,14 @@ for (i in 0:(track_count-1)){
     ann$app_y[i+1] = cur_track$y[1]
     ann$disapp_x[i+1] = cur_track$x[nrow(cur_track)]
     ann$disapp_y[i+1] = cur_track$y[nrow(cur_track)]
-    # record (dis-)appearance cell cycle classification, in time range equals to FRAME_TOLERANCE
-    ann$app_stage[i+1] = paste(cur_track$predicted_class[1:FRAME_TOLERANCE], collapse = "-")
-    ann$disapp_stage[i+1] = paste(cur_track$predicted_class[(nrow(cur_track)-FRAME_TOLERANCE+1): nrow(cur_track)], collapse = "-")
+    if (nrow(cur_track) >= 2*FRAME_TOLERANCE){
+      # record (dis-)appearance cell cycle classification, in time range equals to FRAME_TOLERANCE
+      ann$app_stage[i+1] = paste(cur_track$predicted_class[1:FRAME_TOLERANCE], collapse = "-")
+      ann$disapp_stage[i+1] = paste(cur_track$predicted_class[(nrow(cur_track)-FRAME_TOLERANCE+1): nrow(cur_track)], collapse = "-") 
+    } else {
+      ann$app_stage[i+1] = cur_track$predicted_class[1]
+      ann$disapp_stage[i+1] = cur_track$predicted_class[nrow(cur_track)]
+    }
   } else {
     broken_tracks = c(broken_tracks, i)
   }
@@ -244,8 +249,10 @@ lineage_search = function(tb,track_id,ln=vector()){
 }
 for (i in 1:nrow(ann)){
   # vectors to store predicted parents & daughters
-  parent = vector()
-  daughters = vector()
+  parent = -1 # only keep one parent with the maximum length
+  par_max_len = -1 # maximum length of parent 
+  dau_max_len = -1 # only keep one daughter with maximum length
+  daughters = -1
   # info of each iterated track
   cur_info = ann[i,]
   app_frame = cur_info$app_frame
@@ -253,23 +260,35 @@ for (i in 1:nrow(ann)){
   app_crd = c(cur_info$app_x, cur_info$app_y)
   disapp_crd = c(cur_info$disapp_x, cur_info$disapp_y)
   
-  parent_range = (app_frame-FRAME_TOLERANCE):(app_frame-1)
-  daughter_range = (disapp_frame+1):(disapp_frame+FRAME_TOLERANCE)
+  # if appear as S or disappear as G1, frame tolerance is amplified by 10 for parent or daughter range respectively
+  adj_tol_par = FRAME_TOLERANCE
+  adj_tol_dau = FRAME_TOLERANCE
+  if (length(grep('S',cur_info$app_stage)) != 0){
+    adj_tol_par = adj_tol_par * 10
+  }
+  if (length(grep('G1', cur_info$disapp_stage))!=0){
+    adj_tol_dau = adj_tol_dau * 10
+  }
+  parent_range = (app_frame-adj_tol_par):(app_frame-1)
+  daughter_range = (disapp_frame+1):(disapp_frame+adj_tol_dau)
   # candidate parents and daughters drawn within frame tolerance range
   cdd_parent = subset(ann, ann$disapp_frame%in%parent_range)
   cdd_daughter = subset(ann, ann$app_frame%in%daughter_range)
   # verify parent relationship
   if (nrow(cdd_parent)>0 & cur_info$mitosis_identity!="daughter"){
+    
     for (j in 1:nrow(cdd_parent)){
       cdd_crd = c(cdd_parent$disapp_x[j], cdd_parent$disapp_y[j])
-      if (dist(rbind(app_crd,cdd_crd))<=DIST_TOLERANCE){
+      if (dist(rbind(app_crd,cdd_crd))<=DIST_TOLERANCE & 
+          (cdd_parent$disapp_frame[j] - cdd_parent$app_frame[j]) > par_max_len){
         # location constraint
-        parent = c(parent, cdd_parent$track[j])
+        parent = cdd_parent$track[j]
+        par_max_len = cdd_parent$disapp_frame[j] - cdd_parent$app_frame[j]
       }
     }
-    if (length(parent)!=0){
+    if (parent!=-1){
       # store parent in the format "ID_a/ID_b/..."
-      ann$predicted_parent[i] = paste(parent, collapse = "/")
+      ann$predicted_parent[i] = parent
       count = count + 1
     }
   }
@@ -277,12 +296,14 @@ for (i in 1:nrow(ann)){
   if (nrow(cdd_daughter)>0 & cur_info$mitosis_identity!="parent"){
     for (j in 1:nrow(cdd_daughter)){
       cdd_crd = c(cdd_daughter$app_x[j], cdd_daughter$app_y[j])
-      if (dist(rbind(disapp_crd,cdd_crd))<=DIST_TOLERANCE){
-        daughters = c(daughters, cdd_daughter$track[j])
+      if (dist(rbind(disapp_crd,cdd_crd))<=DIST_TOLERANCE &
+          (cdd_daughter$disapp_frame[j] - cdd_daughter$app_frame[j]) > dau_max_len){
+        daughters = cdd_daughter$track[j]
+        dau_max_len = cdd_daughter$disapp_frame[j] - cdd_daughter$app_frame[j]
       }
     }
-    if(length(daughters)!=0){
-      ann$predicted_daughter[i] = paste(daughters, collapse = "/")
+    if(daughters!=-1){
+      ann$predicted_daughter[i] = daughters
       count = count + 1
     }
   }
@@ -293,10 +314,7 @@ pool = c() # already searched track
 l = list()
 for (i in 1:nrow(ann)){
   if ((!is.na(ann$predicted_parent[i]) | !is.na(ann$predicted_daughter[i])) & is.na(ann$mitosis_parent[i])){
-    if (!ann$track[i] %in% pool 
-        & length(grep("/", ann$predicted_parent[i]))==0 
-        | length(grep("/", ann$predicted_daughter[i]))==0){ 
-      # only uni-parent and uni-daughter allowed to search, others should be mitosis track
+    if (!ann$track[i] %in% pool){ 
       rlt = as.numeric(lineage_search(ann,ann$track[i],c(ann$track[i])))
       if (length(rlt)>=2){ l = c(l, list(rlt)); pool = c(pool, rlt) }
     }
@@ -313,4 +331,4 @@ track = track[order(track$lineageId),]
 print(paste("Lineage amount after reorganizing the lineage:", length(unique(track$lineageId))))
 
 rm(list=ls()[which(ls()!="track" & ls()!="prefix")]) # clean-up
-write.csv(track, paste(getwd(),"bin/.temp.csv",sep = "/"), row.names = F)
+write.csv(track, paste(getwd(),"/bin/.temp.csv",sep = "/"), row.names = F)
