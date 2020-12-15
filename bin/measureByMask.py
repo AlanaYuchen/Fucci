@@ -37,35 +37,33 @@ def doMeasure(mask, gfp, mcy, dic_path):
     
     for j in range(frame_num):
         # for each time frame
-        gfp_frame = measure.regionprops(
-            measure.label(mask[j,:,:]),
-            intensity_image = gfp[j,:,:])
-        mcy_frame = measure.regionprops(
-            measure.label(mask[j,:,:]),
-            intensity_image = mcy[j,:,:]) # region property generator
+        label = measure.label(mask[j,:,:], connectivity=1)
+        gfp_frame = measure.regionprops(label, intensity_image = gfp[j,:,:])
+        mcy_frame = measure.regionprops(label, intensity_image = mcy[j,:,:]) # region property generator
         for i in range(len(gfp_frame)):
             # For each object in the time frame, record properties.
-       
-            gfp_intensity.append(gfp_frame[i].mean_intensity)
-            mcy_intensity.append(mcy_frame[i].mean_intensity)
-            area.append(gfp_frame[i].area)
-            
-            # Construct object image with all three channels, resized for classification.
-            bbox_obj = gfp_frame[i].bbox # object bounding box
-            bbox.append(bbox_obj)
-            # masking three channels by multiplying region object mask
-            gfp_obj = np.multiply(gfp[j, bbox_obj[0]:bbox_obj[2], bbox_obj[1]:bbox_obj[3]], gfp_frame[i].image)
-            mcy_obj = np.multiply(mcy[j, bbox_obj[0]:bbox_obj[2], bbox_obj[1]:bbox_obj[3]], gfp_frame[i].image)
-            dic_obj = np.multiply(dic[j, bbox_obj[0]:bbox_obj[2], bbox_obj[1]:bbox_obj[3]], gfp_frame[i].image)
-            stack = np.stack([dic_obj, gfp_obj, mcy_obj], axis=2)
-            stack_resized = transform.resize(stack, (80,80,3)) * 255 # resize
-            stack_resized = stack_resized.astype('uint8')
-            stacks.append(stack_resized)
-            
-            frame.append(j)
-            x.append(math.ceil(gfp_frame[i].centroid[0])) # round centroids, as primary keys.
-            y.append(math.ceil(gfp_frame[i].centroid[1]))
+            # A secondary size filter excludes small particles after geometric segmentation.
+            if gfp_frame[i].area > 1000:
+                gfp_intensity.append(gfp_frame[i].mean_intensity)
+                mcy_intensity.append(mcy_frame[i].mean_intensity)
+                area.append(gfp_frame[i].area)
                 
+                # Construct object image with all three channels, resized for classification.
+                bbox_obj = gfp_frame[i].bbox # object bounding box
+                bbox.append(bbox_obj)
+                # masking three channels by multiplying region object mask
+                gfp_obj = np.multiply(gfp[j, bbox_obj[0]:bbox_obj[2], bbox_obj[1]:bbox_obj[3]], gfp_frame[i].image)
+                mcy_obj = np.multiply(mcy[j, bbox_obj[0]:bbox_obj[2], bbox_obj[1]:bbox_obj[3]], gfp_frame[i].image)
+                dic_obj = np.multiply(dic[j, bbox_obj[0]:bbox_obj[2], bbox_obj[1]:bbox_obj[3]], gfp_frame[i].image)
+                stack = np.stack([dic_obj, gfp_obj, mcy_obj], axis=2)
+                stack_resized = transform.resize(stack, (80,80,3)) * 255 # resize
+                stack_resized = stack_resized.astype('uint8')
+                stacks.append(stack_resized)
+                
+                frame.append(j)
+                x.append(math.ceil(gfp_frame[i].centroid[0])) # round centroids, as primary keys.
+                y.append(math.ceil(gfp_frame[i].centroid[1]))
+                    
     dt = pd.DataFrame({"id":[x for x in range(1,len(x)+1)],"x":x,"y":y,"frame":frame,"gfp_intensity":gfp_intensity,"mcy_intensity":mcy_intensity,
                       "bbox":bbox,"area":area})
     return dt, stacks
