@@ -5,5 +5,4 @@ scikit-image
 tensorflow
 keras
 pandas
-rpy2
 opencv

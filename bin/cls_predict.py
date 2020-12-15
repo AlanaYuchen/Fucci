@@ -15,6 +15,8 @@ import numpy as np
 import skimage.io as io
 import re
 import keras.backend as bk
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True' # avoid problem on MacOS
 
 def load_image_from_file(d, resolve_class=False):
     # The function reads in image files from a directory and reformat into model-readable format.

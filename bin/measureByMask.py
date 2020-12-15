@@ -34,7 +34,7 @@ def doMeasure(mask, gfp, mcy, dic_path):
     stacks = [] # keep trace of images
     area = []
     frame_num = np.shape(mask)[0] # get time-lapse length
-    
+    mask = mask.astype('bool')
     for j in range(frame_num):
         # for each time frame
         label = measure.label(mask[j,:,:], connectivity=1)
@@ -56,9 +56,9 @@ def doMeasure(mask, gfp, mcy, dic_path):
                 mcy_obj = np.multiply(mcy[j, bbox_obj[0]:bbox_obj[2], bbox_obj[1]:bbox_obj[3]], gfp_frame[i].image)
                 dic_obj = np.multiply(dic[j, bbox_obj[0]:bbox_obj[2], bbox_obj[1]:bbox_obj[3]], gfp_frame[i].image)
                 stack = np.stack([dic_obj, gfp_obj, mcy_obj], axis=2)
-                stack_resized = transform.resize(stack, (80,80,3)) * 255 # resize
-                stack_resized = stack_resized.astype('uint8')
-                stacks.append(stack_resized)
+                stack_resized = transform.resize(stack, (80,80,3)) # resize
+                stack_resized = (stack_resized-np.min(stack_resized)) / (np.max(stack_resized) - np.min(stack_resized))
+                stacks.append(stack_resized.astype('float32'))
                 
                 frame.append(j)
                 x.append(math.ceil(gfp_frame[i].centroid[0])) # round centroids, as primary keys.
@@ -67,8 +67,6 @@ def doMeasure(mask, gfp, mcy, dic_path):
     dt = pd.DataFrame({"id":[x for x in range(1,len(x)+1)],"x":x,"y":y,"frame":frame,"gfp_intensity":gfp_intensity,"mcy_intensity":mcy_intensity,
                       "bbox":bbox,"area":area})
     return dt, stacks
-
-
 
 #=============================== Testing ======================================
 '''

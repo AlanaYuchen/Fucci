@@ -36,7 +36,7 @@ def doGmSeg(image, trh=1000):
     # Output: Binary uint8 image with cluster separated
     
     # Contours of each object in the image, use to conpute convex hull
-    ctrs = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
+    ctrs = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[1]
     
     for i in range(len(ctrs)):
         hull = cv2.convexHull(ctrs[i], returnPoints = False) # return indecies of points in the contour which are also part of the convex hull
@@ -142,7 +142,8 @@ gfp_path = 'data/P1_gfp.tif'
 mcy_path = 'data/P1_mCherry.tif'
 out = doSeg(gfp_path,mcy_path)
 '''
-
+#mask = io.imread('../data/P1_mask_out.tif')
+#image = mask[20,:,:]
 '''
 t = ave_gau[7,:,:].copy()
 t_p_ori = threshold_otsu(t)

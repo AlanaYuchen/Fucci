@@ -7,16 +7,8 @@ Created on Sat Dec 12 14:04:46 2020
 """
 
 from tracking import CentroidTracker
-from rpy2.robjects import r
+import trackRefinepy
 import pandas as pd
-import os
-
-def trackRefineR(meta):
-    meta.to_csv('bin/.temp.csv', index=0)
-    r.source('bin/trackRefine.R')
-    rt = pd.read_csv('bin/.temp.csv')
-    os.remove('bin/.temp.csv')
-    return rt
 
 def centroidTracking(meta):
     ct = CentroidTracker(maxDisappeared=1, dist_trh=90)
@@ -42,7 +34,7 @@ def centroidTracking(meta):
     meta['lineageId'] = trackId
     meta['parentTrackId'] = [-1 for _ in range(len(trackId))] # inatialize parent track for mitosis prediction
 
-    return trackRefineR(meta)
+    return trackRefinepy.doTrackRefine(meta)
 
 # =============================== Testing =====================================
 '''
