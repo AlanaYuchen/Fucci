@@ -83,34 +83,27 @@ def doTrackRefine(track):
         "mitosis_identity" : [False for _ in range(track_count)]
   }
 
-  broken_tracks = []
   for i in range(track_count):
     cur_track = track[track['trackId']==i]
-    if (max(cur_track['frame'])-min(cur_track['frame'])+1)==(cur_track.shape[0]):
-      # constraint A: ilastik does not allow gap-filling, so frame_diff should equals record number
-      # constraint B: track < 2 frame length tolerance is filtered out, No relationship can be deduced from that.
-      ann['track'][i] = i
-      # (dis-)appearance time
-      ann['app_frame'][i] = min(cur_track['frame']) 
-      ann['disapp_frame'][i] = max(cur_track['frame'])
-      # (dis-)appearance coordinate
-      ann['app_x'][i] = cur_track['x'].iloc[0]
-      ann['app_y'][i] = cur_track['y'].iloc[0]
-      ann['disapp_x'][i] = cur_track['x'].iloc[cur_track.shape[0]-1]
-      ann['disapp_y'][i] = cur_track['y'].iloc[cur_track.shape[0]-1]
-      if cur_track.shape[0] >= 2*FRAME_TOLERANCE:
-        # record (dis-)appearance cell cycle classification, in time range equals to FRAME_TOLERANCE
-        ann['app_stage'][i] = '-'.join(cur_track['predicted_class'].iloc[0:FRAME_TOLERANCE])
-        ann['disapp_stage'][i] = '-'.join(cur_track['predicted_class'].iloc[(cur_track.shape[0]-FRAME_TOLERANCE): cur_track.shape[0]])
-      else:
-        ann['app_stage'][i] = cur_track['predicted_class'].iloc[0]
-        ann['disapp_stage'][i] = cur_track['predicted_class'].iloc[cur_track.shape[0]-1]
+    # constraint A: track < 2 frame length tolerance is filtered out, No relationship can be deduced from that.
+    ann['track'][i] = i
+    # (dis-)appearance time
+    ann['app_frame'][i] = min(cur_track['frame']) 
+    ann['disapp_frame'][i] = max(cur_track['frame'])
+    # (dis-)appearance coordinate
+    ann['app_x'][i] = cur_track['x'].iloc[0]
+    ann['app_y'][i] = cur_track['y'].iloc[0]
+    ann['disapp_x'][i] = cur_track['x'].iloc[cur_track.shape[0]-1]
+    ann['disapp_y'][i] = cur_track['y'].iloc[cur_track.shape[0]-1]
+    if cur_track.shape[0] >= 2*FRAME_TOLERANCE:
+      # record (dis-)appearance cell cycle classification, in time range equals to FRAME_TOLERANCE
+      ann['app_stage'][i] = '-'.join(cur_track['predicted_class'].iloc[0:FRAME_TOLERANCE])
+      ann['disapp_stage'][i] = '-'.join(cur_track['predicted_class'].iloc[(cur_track.shape[0]-FRAME_TOLERANCE): cur_track.shape[0]])
     else:
-      broken_tracks.append(i)
+      ann['app_stage'][i] = cur_track['predicted_class'].iloc[0]
+      ann['disapp_stage'][i] = cur_track['predicted_class'].iloc[cur_track.shape[0]-1]
 
   ann = pd.DataFrame(ann)
-  ann = ann[list(map(lambda x:x not in broken_tracks, list(ann['track'])))]
-  track = track[list(map(lambda x: x in list(ann['track']), list(track['trackId'])))]
   track['lineageId'] = track['trackId'].copy() # erase original lineage ID, assign in following steps
   print("High quality tracks subjected to predict relationship: " + str(ann.shape[0]))
 
