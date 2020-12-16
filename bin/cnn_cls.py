@@ -57,7 +57,7 @@ valid_set = np.empty((len(valid_name), 80,80,3), dtype='uint8')
 for f in range(len(valid_name)):
     valid_set[f,:,:,:] = io.imread(valid_dir + '/' + valid_name[f])
  
-# 根据不同的backend定下不同的格式
+
 # input has three channels
 if K.image_data_format() == "channels_first": # using tensorflow
     train_set = train_set.reshape(train_set.shape[0], 3, img_rows, img_cols)
@@ -85,32 +85,32 @@ label_train = np_utils.to_categorical(label_train, nb_classes)
 label_valid = np_utils.to_categorical(label_valid, nb_classes)
  
 #building up model 
-model = Sequential()
+classify_model = Sequential()
  
-model.add(Convolution2D(nb_filters, (kernel_size[0], kernel_size[1]),
+classify_model.add(Convolution2D(nb_filters, (kernel_size[0], kernel_size[1]),
                         padding='same',
                         input_shape=input_shape)) # convolutional kernal 1
-model.add(Activation('relu')) #activation function
-model.add(Convolution2D(nb_filters, (kernel_size[0], kernel_size[1]))) #convolutional kernal 2
-model.add(Activation('relu')) #activation function
-model.add(MaxPooling2D(pool_size=pool_size)) #pooling function
-model.add(Dropout(0.25)) #neuron random inactivation
-model.add(Flatten()) #flatten the data
-model.add(Dense(128)) #fully-connected layer 1
-model.add(Activation('relu')) #activation function
-model.add(Dropout(0.5)) #random inactivation
-model.add(Dense(nb_classes)) #fully-connected layer 2
-model.add(Activation('softmax')) #Softmax layer
+classify_model.add(Activation('relu')) #activation function
+classify_model.add(Convolution2D(nb_filters, (kernel_size[0], kernel_size[1]))) #convolutional kernal 2
+classify_model.add(Activation('relu')) #activation function
+classify_model.add(MaxPooling2D(pool_size=pool_size)) #pooling function
+classify_model.add(Dropout(0.25)) #neuron random inactivation
+classify_model.add(Flatten()) #flatten the data
+classify_model.add(Dense(128)) #fully-connected layer 1
+classify_model.add(Activation('relu')) #activation function
+classify_model.add(Dropout(0.5)) #random inactivation
+classify_model.add(Dense(nb_classes)) #fully-connected layer 2
+classify_model.add(Activation('softmax')) #Softmax layer
  
 #compiling model
-model.compile(loss='categorical_crossentropy',
+classify_model.compile(loss='categorical_crossentropy',
               optimizer='adadelta',
               metrics=['accuracy'])
 #training model
-model.fit(train_set, label_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_data=(valid_set, label_valid))
+classify_model.fit(train_set, label_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_data=(valid_set, label_valid))
 
 # Save model
-model.save('data/model.h5')
+classify_model.save('data/model.h5')
 
 #evaluating model
 #score = model.evaluate(X_test, Y_test, verbose=0)
