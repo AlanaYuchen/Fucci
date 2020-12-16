@@ -7,7 +7,6 @@ Created on Tue Dec 15 19:03:45 2020
 
 import pandas as pd
 import numpy as np
-import os
 import math
 import re
 
@@ -82,7 +81,8 @@ def doTrackRefine(track):
         "mitosis_daughter" : [None for _ in range(track_count)],
         "mitosis_identity" : [False for _ in range(track_count)]
   }
-
+  
+  short_tracks = []
   for i in range(track_count):
     cur_track = track[track['trackId']==i]
     # constraint A: track < 2 frame length tolerance is filtered out, No relationship can be deduced from that.
@@ -102,16 +102,16 @@ def doTrackRefine(track):
     else:
       ann['app_stage'][i] = cur_track['predicted_class'].iloc[0]
       ann['disapp_stage'][i] = cur_track['predicted_class'].iloc[cur_track.shape[0]-1]
-
+      short_tracks.append(i)
   ann = pd.DataFrame(ann)
   track['lineageId'] = track['trackId'].copy() # erase original lineage ID, assign in following steps
-  print("High quality tracks subjected to predict relationship: " + str(ann.shape[0]))
+  print("High quality tracks subjected to predict relationship: " + str(ann.shape[0] - len(short_tracks)))
 
   count = 0
   # Mitosis search 1
   #   Aim: to identify two appearing daughter tracks after one disappearing parent track
   #   Algorithm: find potential daughters, for each pair of them, 
-  potential_daughter_pair_id = list(ann[list(map(lambda x:re.search('[MG1]', ann['app_stage'].iloc[x]) is not None, range(ann.shape[0])))]['track']) # daughter track must appear as M during mitosis
+  potential_daughter_pair_id = list(ann[list(map(lambda x:re.search('[MG1]', ann['app_stage'].iloc[x]) is not None and ann['track'].iloc[x] not in short_tracks, range(ann.shape[0])))]['track']) # daughter track must appear as M during mitosis
   for i in range(len(potential_daughter_pair_id)-1):
     for j in range(i+1, len(potential_daughter_pair_id)):
       # iterate over all pairs of potential daughters
@@ -123,7 +123,7 @@ def doTrackRefine(track):
         # Constraint B: close appearing time
         
         # Find potential parent that disappear at M
-        potential_parent = list(ann[list(map(lambda x:re.search('M', ann['disapp_stage'].iloc[x]) is not None and ann['mitosis_identity'].iloc[x]==False, range(ann.shape[0])))]['track'])
+        potential_parent = list(ann[list(map(lambda x:re.search('M', ann['disapp_stage'].iloc[x]) is not None and ann['mitosis_identity'].iloc[x]==False and x not in short_tracks, range(ann.shape[0])))]['track'])
         
         ann.loc[ann['track']==potential_daughter_pair_id[i],"mitosis_identity"] = "daughter"
         ann.loc[ann['track']==potential_daughter_pair_id[j],"mitosis_identity"] = "daughter"
@@ -156,7 +156,7 @@ def doTrackRefine(track):
   #   Aim: solve mitotic track (daughter) that appear near another mitotic track (parent).
   #   Algorithm: find the pool of tracks that appear as mitotic. For each, find nearby mitotic tracks.
   sub_ann = ann[ann['mitosis_identity'] != "daughter"]
-  potential_daughter_trackId = list(sub_ann[list(map(lambda x:re.search('[MG1]', sub_ann['app_stage'].iloc[x]) is not None, range(sub_ann.shape[0])))]['track']) # potential daughter tracks must appear at M phase during mitosis
+  potential_daughter_trackId = list(sub_ann[list(map(lambda x:re.search('[MG1]', sub_ann['app_stage'].iloc[x]) is not None and sub_ann['track'].iloc[x] not in short_tracks, range(sub_ann.shape[0])))]['track']) # potential daughter tracks must appear at M phase during mitosis
   for i in range(len(potential_daughter_trackId)):
     target_info = ann[ann['track']==potential_daughter_trackId[i]]
     # extract all info in the frame when potential daughter appears
@@ -167,7 +167,10 @@ def doTrackRefine(track):
     if searching.shape[0]==0: 
         continue 
     else:
-        pot_ids = np.unique(searching['trackId'])
+        pot_ids = list(np.unique(searching['trackId']))
+        for d in pot_ids:
+            if d in short_tracks:
+                pot_ids.remove(d)
         searching = track[list(map(lambda x:track['frame'].iloc[x] == int(target_info['app_frame']) and 
                                   track['trackId'].iloc[x] in pot_ids, range(track.shape[0])))]
         for j in range(searching.shape[0]):
@@ -186,7 +189,7 @@ def doTrackRefine(track):
             ann.loc[ann['track']==int(searching['trackId'].iloc[j]), "mitosis_daughter"] = potential_daughter_trackId[i]
             #print(paste("Parent: ", searching$trackId[j], sep = ""))
             # update lineage and parent track information of the daughter track
-            track.loc[list(map(lambda x:track['trackId'].iloc[x]==int(target_info['track']), range(track.shape[0]))), ['lineageId','parentTrackId']] = parent_id
+            track.loc[list(map(lambda x:track['trackId'].iloc[x]==int(target_info['track']), range(track.shape[0]))), ['lineageId','parentTrackId']] = int(searching['trackId'].iloc[j])
             count = count + 1
 
   print("High confidence mitosis relations found:" + str(count))
@@ -215,10 +218,10 @@ def doTrackRefine(track):
     adj_tol_par = FRAME_TOLERANCE
     adj_tol_dau = FRAME_TOLERANCE
     if re.search('S',cur_info['app_stage']) is not None:
-      adj_tol_par = adj_tol_par * 10
+      adj_tol_par = adj_tol_par * 5
     
     if re.search('G1', cur_info['disapp_stage']) is not None:
-      adj_tol_dau = adj_tol_dau * 10
+      adj_tol_dau = adj_tol_dau * 5
 
     parent_range = range(app_frame-adj_tol_par, app_frame)
     daughter_range = range(disapp_frame+1,disapp_frame+adj_tol_dau+1)
@@ -243,7 +246,7 @@ def doTrackRefine(track):
     if cdd_daughter.shape[0] > 0 and cur_info['mitosis_identity']!="parent":
       for j in range(cdd_daughter.shape[0]):
         cdd_crd =  (int(cdd_daughter['app_x'].iloc[j]), int(cdd_daughter['app_y'].iloc[j]))
-        if dist(app_crd[0],app_crd[1],cdd_crd[0],cdd_crd[1]) <= DIST_TOLERANCE and (int(cdd_daughter['disapp_frame'].iloc[j]) - int(cdd_daughter['app_frame'].iloc[j])) > par_max_len:
+        if dist(disapp_crd[0],disapp_crd[1],cdd_crd[0],cdd_crd[1]) <= DIST_TOLERANCE and (int(cdd_daughter['disapp_frame'].iloc[j]) - int(cdd_daughter['app_frame'].iloc[j])) > dau_max_len:
           daughters = int(cdd_daughter['track'].iloc[j])
           dau_max_len = int(cdd_daughter['disapp_frame'].iloc[j]) - int(cdd_daughter['app_frame'].iloc[j])
   

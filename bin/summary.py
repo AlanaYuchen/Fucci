@@ -31,7 +31,7 @@ def save_track(track, out, prefix):
     '''
     The function saves output to csv file.
     '''
-    track.to_csv(out + prefix + '_track.csv', index=0)
+    track.to_csv(out + prefix + 'track.csv', index=0)
     return
 
 #=============================== Testing ======================================

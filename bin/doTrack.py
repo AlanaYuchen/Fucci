@@ -33,6 +33,7 @@ def centroidTracking(meta):
     meta['trackId'] = trackId
     meta['lineageId'] = trackId
     meta['parentTrackId'] = [-1 for _ in range(len(trackId))] # inatialize parent track for mitosis prediction
+
     return trackRefinepy.doTrackRefine(meta)
 
 # =============================== Testing =====================================
