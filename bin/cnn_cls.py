@@ -20,14 +20,14 @@ import numpy as np
 os.chdir(os.path.abspath("../")) # project path, absolute
 
 # relative directory to the project
-train_dir = 'data/training/train'
-valid_dir = 'data/training/valid'
+train_dir = 'data/training/training'
+valid_dir = 'data/training/validation'
 
 # global variables
 batch_size = 10
 nb_classes = 4 # Cell cycle stage: G1/S/G2/M
 class_dic = {'G1':0, 'S':1, 'G2':2, 'M':3}
-epochs = 5
+epochs = 10
 # input image dimensions
 img_rows, img_cols = 80, 80
 # number of convolutional filters
@@ -41,13 +41,13 @@ kernel_size = (3, 3)
 train_name = os.listdir(train_dir)
 if '.DS_Store' in train_name:
     train_name.remove('.DS_Store')
-label_train = list(map(lambda x: re.search('train_\d+_(\w+).tif', x).group(1), train_name))
+label_train = list(map(lambda x: re.search('P\d_\d+_(\w+).tif', x).group(1), train_name))
 label_train = list(map(lambda x: class_dic[x], label_train))
 
 valid_name = os.listdir(valid_dir)
 if '.DS_Store' in valid_name:
     valid_name.remove('.DS_Store')
-label_valid = list(map(lambda x: re.search('valid_\d+_(\w+).tif', x).group(1), valid_name))
+label_valid = list(map(lambda x: re.search('P\d_\d+_(\w+).tif', x).group(1), valid_name))
 label_valid = list(map(lambda x: class_dic[x], label_valid))
 
 train_set = np.empty((len(train_name), 80,80,3), dtype='uint8') # size:80*80, 3 channels
@@ -110,7 +110,7 @@ classify_model.compile(loss='categorical_crossentropy',
 classify_model.fit(train_set, label_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_data=(valid_set, label_valid))
 
 # Save model
-classify_model.save('data/model.h5')
+classify_model.save('data/new_model.h5')
 
 #evaluating model
 #score = model.evaluate(X_test, Y_test, verbose=0)
