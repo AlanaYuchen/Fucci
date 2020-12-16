@@ -110,12 +110,12 @@ def main(argv):
         prefix = re.search('(.*)GFP.*', gfp_list[i]).group(1)
         
         # Step 1. Segmentation
-        if verbose: print(">>> Segmentation\n")
+        if verbose: print("\n>>> Segmentation\n")
         mask, gfp_pcd, mcy_pcd = segmentation.doSeg(gfp_path, mCherry_path)
         io.imsave('/Users/jefft/Desktop/P2_mask.tif', mask)
 
         # Step 2. Identify objects, retrieve resized images of each object
-        if verbose: print(">>> Object Identification")
+        if verbose: print("\n>>> Object Identification")
         obj_table, stacks = measureByMask.doMeasure(mask, gfp_pcd, mcy_pcd, dic_path)
         if verbose: print("Identified " + str(len(stacks)) + " objects. \n")
         
@@ -123,9 +123,8 @@ def main(argv):
         if verbose: print(">>> Classification\n")
         obj_table = cls_predict.doPredict(obj_table, stacks, cnn_path)
         
-        obj_table.to_csv('/Users/jefft/Desktop/P1.csv',index=0)
         # Step 4. Tracking
-        if verbose: print(">>> Tracking\n")
+        if verbose: print("\n>>> Tracking\n")
         tracks = doTrack.centroidTracking(obj_table)
         
         # Step 5. Output result

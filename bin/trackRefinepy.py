@@ -61,12 +61,6 @@ def doTrackRefine(track):
   FRAME_TOLERANCE = 5 # Time distance to search for parent-daughter relationship
 
   # Filter out false detection
-
-  false_track = track.shape[0]
-  track = track[track['trackId']>=0] # trackId = -1 means false detection
-  false_track = false_track - track.shape[0] + 1
-  print("Filtered false detection objects:" + str(false_track))
-
   track = track.sort_values(by=['trackId','frame']) # sort by track ID
 
 
@@ -92,7 +86,7 @@ def doTrackRefine(track):
   broken_tracks = []
   for i in range(track_count):
     cur_track = track[track['trackId']==i]
-    if (max(cur_track['frame'])-min(cur_track['frame']-1))==(cur_track.shape[0]):
+    if (max(cur_track['frame'])-min(cur_track['frame'])+1)==(cur_track.shape[0]):
       # constraint A: ilastik does not allow gap-filling, so frame_diff should equals record number
       # constraint B: track < 2 frame length tolerance is filtered out, No relationship can be deduced from that.
       ann['track'][i] = i
