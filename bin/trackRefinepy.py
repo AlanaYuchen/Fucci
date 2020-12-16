@@ -162,7 +162,7 @@ def doTrackRefine(track):
               count = count + 1
 
   print("Low confidence mitosis relations found:" + str(count))
-  track = track.sort_values(by=['lineageId','frame'])
+  track = track.sort_values(by=['lineageId','trackId','frame'])
 
   count = 0
   # Mitosis search 2: 
@@ -203,7 +203,7 @@ def doTrackRefine(track):
             count = count + 1
 
   print("High confidence mitosis relations found:" + str(count))
-  track = track.sort_values(by=['lineageId','frame'])
+  track = track.sort_values(by=['lineageId','trackId','frame'])
 
   count = 0
   # Lineage search
@@ -282,7 +282,7 @@ def doTrackRefine(track):
     for i in range(1,len(lineage_v)):
         track.loc[track['trackId']==lineage_v[i], ["trackId","lineageId"]] =lineage_v[0]
 
-  track = track.sort_values(by=['lineageId','frame'])
+  track = track.sort_values(by=['lineageId','trackId','frame'])
   print("Lineage amount after reorganizing the lineage:" + str(len(np.unique(track['lineageId']))))
 
   return track

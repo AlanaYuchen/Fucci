@@ -27,40 +27,7 @@ import skimage.measure as measure
 from skimage.filters import threshold_otsu
 from skimage.morphology import remove_small_objects, binary_opening, binary_erosion
 from skimage.draw import line
-import cv2
-from numpy import argsort
 from scipy import ndimage as ndi
-
-def doGmSeg(image, trh=1000):
-    # Input: Binary uint8 image may or may not containing clustered masks
-    # Output: Binary uint8 image with cluster separated
-    
-    # Contours of each object in the image, use to conpute convex hull
-    ctrs = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[1]
-    
-    for i in range(len(ctrs)):
-        hull = cv2.convexHull(ctrs[i], returnPoints = False) # return indecies of points in the contour which are also part of the convex hull
-        # extract defect of the convex hull
-        defects = cv2.convexityDefects(ctrs[i], hull) # four params: start_index, end_index, fartherest point index and distance. 
-        if not defects is None:
-        # filter defects by threshold, defalut 1000
-            defects = defects[defects[:,:,3]>trh]
-            if (defects.shape[0]<2):
-                # if no over threshold convexity defect found, return early
-                # Note: if there is only one defect point, no segmentation will be performed.
-                continue
-            else:
-                # if more than 2, take maximum 2
-                defects = defects[argsort(-defects[:,3].ravel())[0:2]] # descending sort by depth
-                this_ctrs = ctrs[i][:,0,:]
-                cd = this_ctrs[defects[:,2].ravel(),:]
-                # draw segment line between 2 defect points
-                rr, cc = line(cd[0,1],cd[0,0],cd[1,1],cd[1,0])
-                image[rr, cc] = 0
-                image[rr+1, cc] = 0
-                image[rr, cc+1] = 0
-    
-    return image
 
 def adaptive_rescaling(pcd, k=5):
     # The function applies a non-linear function to each pixel of the image, 
@@ -124,9 +91,7 @@ def doSeg(gfp_path, mcy_path):
             box = props[k].bbox
             if props[k].convex_area > 3 * props[k].area:
                 mask[i,box[0]:box[2],box[1]:box[3]] = props[k].convex_image.copy() * 255
-
-        # geometric segmentation
-        mask[i,:,:] = doGmSeg(mask[i,:,:], trh=5000)
+    
         # erosion, to exclude super thick edges
         mask[i,:,:] = binary_erosion(binary_erosion(mask[i,:,:]))
     
@@ -134,6 +99,7 @@ def doSeg(gfp_path, mcy_path):
     end = time.time()
     print("Finished generating mask: " + str(math.floor(end-start)) + " s.")
     # Output: mask, intensity rescaled gfp and mCherry image stacks
+    #io.imsave('/Users/jefft/Desktop/mask_P1.tif',mask)
     return mask, gfp, mcy
     
 #============================= Testing ========================================

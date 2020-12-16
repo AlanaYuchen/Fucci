@@ -18,7 +18,7 @@ def plot_track(track, out, prefix):
     plt.figure(dpi=300,figsize=(8,8))
     for trk in np.unique(track['trackId']):
         trk_filtered = track[track['trackId']==trk]
-        plt.plot(trk_filtered['mcy_intensity'], trk_filtered['gfp_intensity'], linestyle="dashed", color='lightgray', linewidth=1, zorder=1)
+        #plt.plot(trk_filtered['mcy_intensity'], trk_filtered['gfp_intensity'], linestyle="dashed", color='lightgray', linewidth=1, zorder=1)
         plt.scatter(trk_filtered['mcy_intensity'], trk_filtered['gfp_intensity'], marker=".", s=5, c = trk_filtered['predicted_class'].map(colors), zorder=2)
     plt.title(prefix + ' Tracks', fontsize=24)
     plt.xlabel('mCherry', fontsize=14)
