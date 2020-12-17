@@ -10,8 +10,8 @@ from tracking import CentroidTracker
 import trackRefinepy
 import pandas as pd
 
-def centroidTracking(meta):
-    ct = CentroidTracker(maxDisappeared=1, dist_trh=90)
+def centroidTracking(meta, threshold_F=90, threshold_T=5):
+    ct = CentroidTracker(maxDisappeared=threshold_T, dist_trh=threshold_F)
     trackId = []
     for i in range(max(meta['frame'])+1):
         # for each frame, extract centroids
@@ -33,7 +33,8 @@ def centroidTracking(meta):
     meta['trackId'] = trackId
     meta['lineageId'] = trackId
     meta['parentTrackId'] = [-1 for _ in range(len(trackId))] # inatialize parent track for mitosis prediction
-    return trackRefinepy.doTrackRefine(meta)
+
+    return trackRefinepy.doTrackRefine(meta, threshold_F, threshold_T)
 
 # =============================== Testing =====================================
 '''

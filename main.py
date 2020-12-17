@@ -37,10 +37,12 @@ def main(argv):
     mcy_list = []
     dic_list = []
     cnn_path = basepath + '/data/model.h5'
+    trh_F = 90 # distance tolerance (how Far neighbour)
+    trh_T = 5 # time tolerance (how Time Far neighbour)
     
     # Collect and resolve user command
     try:
-        opts, args = getopt.getopt(argv, "-h-i:-g:-m:-d:-o:-v", ["help","indir=","GFP_image=","mCherry_image=","DIC_image=", "outdir=", "verbose"])
+        opts, args = getopt.getopt(argv, "-h-i:-g:-m:-d:-o:-f:-t:-v", ["help","indir=","GFP_image=","mCherry_image=","DIC_image=", "outdir=", "threshold_F=", "threshold_T=", "verbose"])
     except getopt.GetoptError:
         print('fucci.py               -v <verbose> -h <help> \n ## Directory Mode ##  -i <input directory> -o <output directory> \n ##    File Mode   ##  -g <GFP image> -m <mCherry image> -d <DIC image> -o <output directory>')
         sys.exit()
@@ -63,6 +65,10 @@ def main(argv):
            mCherry_path = arg
         elif opt in ("-d", "--DIC_image"):
            dic_path = arg
+        elif opt in ("-t", "--threshold_T"):
+            trh_T = arg
+        elif opt in ("-f", "--threshold_F"):
+            trh_F = arg
         elif opt in ("-v", "--verbose"):
             verbose = True
     if len(ip) * len(gfp_path) or len(ip) * len(mCherry_path) or len(ip) * len(dic_path) != 0:
@@ -125,7 +131,7 @@ def main(argv):
         
         # Step 4. Tracking
         if verbose: print("\n>>> Tracking\n")
-        tracks = doTrack.centroidTracking(obj_table)
+        tracks = doTrack.centroidTracking(obj_table, trh_F, trh_T)
         
         # Step 5. Output result
         summary.plot_track(tracks, out, prefix)
