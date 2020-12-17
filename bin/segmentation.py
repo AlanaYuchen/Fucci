@@ -26,8 +26,17 @@ import skimage.filters as filters
 import skimage.measure as measure
 from skimage.filters import threshold_otsu
 from skimage.morphology import remove_small_objects, binary_opening, binary_erosion
-from skimage.draw import line
 from scipy import ndimage as ndi
+import skimage.segmentation as segmentation
+
+def doWaterShed(image):
+    image = image.astype('bool')
+    distance = ndi.distance_transform_edt(image)
+    distance = filters.gaussian(distance, sigma=10)
+    mask_f = distance>=0.6*np.max(distance)
+    markers = ndi.label(mask_f)[0]
+    labels = segmentation.watershed(-distance, markers, mask=image, watershed_line=True)
+    return labels
 
 def adaptive_rescaling(pcd, k=5):
     # The function applies a non-linear function to each pixel of the image, 
@@ -91,6 +100,11 @@ def doSeg(gfp_path, mcy_path):
             box = props[k].bbox
             if props[k].convex_area > 3 * props[k].area:
                 mask[i,box[0]:box[2],box[1]:box[3]] = props[k].convex_image.copy() * 255
+            else:
+                lbs = doWaterShed(props[k].image)
+                if np.max(lbs)>1:
+                    lbs[lbs>=1] = 255
+                    mask[i,box[0]:box[2],box[1]:box[3]] = lbs.copy()
     
         # erosion, to exclude super thick edges
         mask[i,:,:] = binary_erosion(binary_erosion(mask[i,:,:]))
@@ -98,8 +112,8 @@ def doSeg(gfp_path, mcy_path):
     mask =  mask.astype('uint8') * 255
     end = time.time()
     print("Finished generating mask: " + str(math.floor(end-start)) + " s.")
+    
     # Output: mask, intensity rescaled gfp and mCherry image stacks
-    #io.imsave('/Users/jefft/Desktop/mask_P1.tif',mask)
     return mask, gfp, mcy
     
 #============================= Testing ========================================
