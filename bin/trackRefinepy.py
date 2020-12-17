@@ -53,11 +53,11 @@ def lineage_search(tb,track_id,ln=[]):
 # - 3. Temporal loss of signal or segmentation issue
 # - 4. Mitosis
 
-def doTrackRefine(track):
+def doTrackRefine(track, threshold_F=90, threshold_T=5):
 
-  DIST_TOLERANCE = 90 # Distance to search for parent-daughter relatoinship
+  DIST_TOLERANCE = threshold_F # Distance to search for parent-daughter relatoinship
   div_trans_factor = 1.5 # recommanded
-  FRAME_TOLERANCE = 5 # Time distance to search for parent-daughter relationship
+  FRAME_TOLERANCE = threshold_T # Time distance to search for parent-daughter relationship
 
   # Filter out false detection
   track = track.sort_values(by=['trackId','frame']) # sort by track ID
