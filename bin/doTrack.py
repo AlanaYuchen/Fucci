@@ -8,7 +8,6 @@ Created on Sat Dec 12 14:04:46 2020
 
 from tracking import CentroidTracker
 import trackRefinepy
-import pandas as pd
 
 def centroidTracking(meta, threshold_F=90, threshold_T=5):
     ct = CentroidTracker(maxDisappeared=threshold_T, dist_trh=threshold_F)

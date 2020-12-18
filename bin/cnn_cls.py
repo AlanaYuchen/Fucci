@@ -14,7 +14,6 @@ from keras import backend as K
 import os
 import re
 import skimage.io as io
-import numpy as np
  
 # project directory
 os.chdir(os.path.abspath("../")) # project path, absolute

@@ -12,18 +12,6 @@ import skimage.io as io
 import pandas as pd
 import math
 import skimage.transform as transform
-from scipy import ndimage as ndi
-import skimage.segmentation as segmentation
-import skimage.filters as filters
-
-def doWaterShed(image):
-    image = image.astype('bool')
-    distance = ndi.distance_transform_edt(image)
-    distance = filters.gaussian(distance, sigma=10)
-    mask_f = distance>=0.6*np.max(distance)
-    markers = ndi.label(mask_f)[0]
-    labels = segmentation.watershed(-distance, markers, mask=image)
-    return labels.astype('bool')
 
 def doMeasure(mask, gfp, mcy, dic_path):
     # mask: binary image, from segmentation

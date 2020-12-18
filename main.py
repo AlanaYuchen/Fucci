@@ -91,13 +91,18 @@ def main(argv):
         gfp_list.append(re.search('.*/(.*GFP.*)', gfp_path).group(1))
         mcy_list.append(re.search('.*/(.*mCherry.*)', mCherry_path).group(1))
         dic_list.append(re.search('.*/(.*DIC.*)', dic_path).group(1))
-        
+    
+    gfp_list.sort()
+    mcy_list.sort()
+    dic_list.sort()
+    
     # Wait for user to confirm file names.
     print("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n")
     print("GFP images:      " + str(gfp_list))
     print("mCherry images:  " + str(mcy_list))
     print("DIC images:      " + str(dic_list))
     print("\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
+    
     if len(set([len(gfp_list), len(mcy_list), len(dic_list)])) != 1:
         # image file should have one-to-one relationship
         print("Error! Can not resolve datasets without same lengths.")

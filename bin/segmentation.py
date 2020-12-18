@@ -33,7 +33,7 @@ def doWaterShed(image):
     image = image.astype('bool')
     distance = ndi.distance_transform_edt(image)
     distance = filters.gaussian(distance, sigma=10)
-    mask_f = distance>=0.6*np.max(distance)
+    mask_f = distance>=0.7*np.max(distance)
     markers = ndi.label(mask_f)[0]
     labels = segmentation.watershed(-distance, markers, mask=image, watershed_line=True)
     return labels
