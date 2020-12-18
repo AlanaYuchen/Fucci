@@ -1,24 +1,15 @@
-# FUCCI
-FUCCI time lapse analysis
+# FUCCI Decoder
 
-Goals:
-1. Obtain cell masks
-2. Classification of G1, S, G2/M, NEB
-3. Tracking
-4. Mitosis Recovery
-
-Steps:
-1. Obtain cell masks
-- Pre-processing
-- Thresholding
-- Post-processing
-
-2. Classification of G1, S, G2/M, NEB
-- Apply cell mask to raw data and measure intensity
-- Label training dataset
-- KNN
-
-3. Tracking
+FUCCI Decoder, for automatically obtaining high-throughput cell cycle quantitative information at single cell-level with live-cell imaging on FUCCI cell line as input. 
 
 
-4. Mitosis Recovery
+## Usage
+
+1. Download the project, navigate to project repository.
+2. Activate python environment with requirements installed.  (see requirements.txt)
+3. Check python version 3.6 (software developed under 3.6.10)
+4. To run single dataset:
+   - main.py -g <GFP image> -m <mCherry image> -d <DIC image> -o <output directory>
+5. To run in batch:
+   -i <input directory> -o <output directory>  
+  
