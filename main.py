@@ -44,14 +44,14 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv, "-h-i:-g:-m:-d:-o:-f:-t:-v", ["help","indir=","GFP_image=","mCherry_image=","DIC_image=", "outdir=", "threshold_F=", "threshold_T=", "verbose"])
     except getopt.GetoptError:
-        print('fucci.py               -v <verbose> -h <help> \n ## Directory Mode ##  -i <input directory> -o <output directory> \n ##    File Mode   ##  -g <GFP image> -m <mCherry image> -d <DIC image> -o <output directory>')
+        print('fucci.py               -v <verbose> -h <help> -t <frame threshold> -d <distance threshold> \n ## Directory Mode ##  -i <input directory> -o <output directory> \n ##    File Mode   ##  -g <GFP image> -m <mCherry image> -d <DIC image> -o <output directory>')
         sys.exit()
     if  len(opts)==0:
-        print('fucci.py               -v <verbose> -h <help> \n ## Directory Mode ##  -i <input directory> -o <output directory> \n ##    File Mode   ##  -g <GFP image> -m <mCherry image> -d <DIC image> -o <output directory>')
+        print('fucci.py               -v <verbose> -h <help> -t <frame threshold> -d <distance threshold> \n ## Directory Mode ##  -i <input directory> -o <output directory> \n ##    File Mode   ##  -g <GFP image> -m <mCherry image> -d <DIC image> -o <output directory>')
         sys.exit()
     for opt, arg in opts:
         if opt == '-h':
-           print('fucci.py \n ## Directory Mode ##  -i <input directory> -o <output directory> \n ##    File Mode   ##  -g <GFP image> -m <mCherry image> -d <DIC image> -o <output directory>')
+           print('fucci.py \n ## Directory Mode ##  -i <input directory> -o <output directory> -t <frame threshold> -d <distance threshold> \n ##    File Mode   ##  -g <GFP image> -m <mCherry image> -d <DIC image> -o <output directory>')
            sys.exit()
         elif opt in ("-i", "--indir"):
            ip = arg + "/"
