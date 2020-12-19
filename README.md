@@ -7,7 +7,7 @@ FUCCI Decoder, for automatically obtaining high-throughput cell cycle quantitati
 
 1. Download the project, navigate to project repository.
 2. Activate python environment with requirements installed.  (see requirements.txt)
-3. Check python version 3.6 (software developed under 3.6.10)
+3. Check python version 3.6/3.7 (software developed under 3.6.10, tested on 3.6.10 & 3.7.9)
 4. To run single dataset (images should be in tif stack format with same prefix and dimensionality (txy/tyx)):
    ```
    python main.py -g <GFP image> -m <mCherry image> -d <DIC image> -o <output directory>
