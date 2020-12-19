@@ -36,7 +36,7 @@ def main(argv):
     gfp_list = []
     mcy_list = []
     dic_list = []
-    cnn_path = basepath + '/data/model.h5'
+    cnn_path = basepath + '/softwareData/model.h5'
     trh_F = 90 # distance tolerance (how Far neighbour)
     trh_T = 5 # time tolerance (how Time Far neighbour)
     
@@ -44,14 +44,14 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv, "-h-i:-g:-m:-d:-o:-f:-t:-v", ["help","indir=","GFP_image=","mCherry_image=","DIC_image=", "outdir=", "threshold_F=", "threshold_T=", "verbose"])
     except getopt.GetoptError:
-        print('fucci.py               -v <verbose> -h <help> -t <frame threshold> -d <distance threshold> \n ## Directory Mode ##  -i <input directory> -o <output directory> \n ##    File Mode   ##  -g <GFP image> -m <mCherry image> -d <DIC image> -o <output directory>')
+        print('fucci.py               -v <verbose> -h <help> -t <time frame threshold> -f <distance threshold> \n ## Directory Mode ##  -i <input directory> -o <output directory> \n ##    File Mode   ##  -g <GFP image> -m <mCherry image> -d <DIC image> -o <output directory>')
         sys.exit()
     if  len(opts)==0:
-        print('fucci.py               -v <verbose> -h <help> -t <frame threshold> -d <distance threshold> \n ## Directory Mode ##  -i <input directory> -o <output directory> \n ##    File Mode   ##  -g <GFP image> -m <mCherry image> -d <DIC image> -o <output directory>')
+        print('fucci.py               -v <verbose> -h <help> -t <time frame threshold> -f <distance threshold> \n ## Directory Mode ##  -i <input directory> -o <output directory> \n ##    File Mode   ##  -g <GFP image> -m <mCherry image> -d <DIC image> -o <output directory>')
         sys.exit()
     for opt, arg in opts:
         if opt == '-h':
-           print('fucci.py \n ## Directory Mode ##  -i <input directory> -o <output directory> -t <frame threshold> -d <distance threshold> \n ##    File Mode   ##  -g <GFP image> -m <mCherry image> -d <DIC image> -o <output directory>')
+           print('fucci.py \n ## Directory Mode ##  -i <input directory> -o <output directory> -t <time frame threshold> -f <distance threshold> \n ##    File Mode   ##  -g <GFP image> -m <mCherry image> -d <DIC image> -o <output directory>')
            sys.exit()
         elif opt in ("-i", "--indir"):
            ip = arg + "/"
@@ -66,9 +66,9 @@ def main(argv):
         elif opt in ("-d", "--DIC_image"):
            dic_path = arg
         elif opt in ("-t", "--threshold_T"):
-            trh_T = arg
+            trh_T = int(arg)
         elif opt in ("-f", "--threshold_F"):
-            trh_F = arg
+            trh_F = int(arg)
         elif opt in ("-v", "--verbose"):
             verbose = True
     if len(ip) * len(gfp_path) or len(ip) * len(mCherry_path) or len(ip) * len(dic_path) != 0:
@@ -88,6 +88,7 @@ def main(argv):
                 dic_list.append(filename)
     else:
         # in single mode, extract file name from file path
+        print(dic_path)
         gfp_list.append(re.search('.*/(.*GFP.*)', gfp_path).group(1))
         mcy_list.append(re.search('.*/(.*mCherry.*)', mCherry_path).group(1))
         dic_list.append(re.search('.*/(.*DIC.*)', dic_path).group(1))
